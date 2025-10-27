@@ -1,58 +1,49 @@
-const BASE = "https://openlibrary.org/search.json";
+const BASE = "https://www.googleapis.com/books/v1/volumes";
 const $grid = $("#grid");
 const $query = $("#searchInput");
 const $status = $("#status");
 const $error = $("#error");
 
-function getCover(book) {
-  if (book.cover_i) return `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`;
-  return "https://via.placeholder.com/200x280/0b1023/ffffff?text=No+Cover";
+function getCover(v) {
+  const img = v?.imageLinks?.thumbnail || v?.imageLinks?.smallThumbnail;
+  return img || "https://via.placeholder.com/200x280/0b1023/ffffff?text=No+Cover";
 }
 
-function makeCard(book) {
+function makeCard(item) {
+  const v = item.volumeInfo || {};
   const $card = $("<div>").addClass("card");
-  $("<img>").addClass("cover").attr("src", getCover(book)).appendTo($card);
+  $("<img>").addClass("cover").attr("src", getCover(v)).appendTo($card);
   const $body = $("<div>").addClass("card-body").appendTo($card);
-  $("<h3>").addClass("book-title").text(book.title || "Untitled").appendTo($body);
-  $("<p>").addClass("meta").text((book.author_name || ["Unknown"])[0]).appendTo($body);
+  $("<h3>").addClass("book-title").text(v.title || "Untitled").appendTo($body);
+  $("<p>").addClass("meta").text((v.authors && v.authors[0]) || "Unknown").appendTo($body);
   return $card;
 }
 
-function showBooks(books) {
+function showBooks(items) {
   $grid.empty();
-  if (!books.length) {
-    $grid.append($("<p>").text("No books found."));
-  } else {
-    books.slice(0, 20).forEach(b => $grid.append(makeCard(b)));
-  }
+  const list = Array.isArray(items) ? items.slice(0, 20) : [];
+  if (!list.length) $grid.append($("<p>").text("No books found."));
+  else list.forEach(it => $grid.append(makeCard(it)));
   $status.text("");
 }
 
-async function fetchBooks(query = "the") {
+async function fetchBooks(q = "the") {
   $status.text("Loading books...");
   $error.text("");
   $grid.empty();
   try {
-    const res = await fetch(`${BASE}?q=${encodeURIComponent(query)}&limit=20`);
+    const url = `${BASE}?q=${encodeURIComponent(q)}&maxResults=20&printType=books`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
     const data = await res.json();
-    showBooks(data.docs || []);
+    showBooks(data.items || []);
   } catch (err) {
     $status.text("");
-    $error.text(`Failed to fetch books: ${err.message}`);
+    $error.text(`Failed to fetch books: ${err.message || "Network error"}`);
   }
 }
 
 $("#btnLoad").on("click", () => fetchBooks());
-$("#btnSearch").on("click", () => {
-  const q = $query.val().trim();
-  if (q) fetchBooks(q);
-});
-$query.on("keydown", e => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    fetchBooks($query.val().trim());
-  }
-});
-
+$("#btnSearch").on("click", () => { const q = $query.val().trim(); if (q) fetchBooks(q); });
+$query.on("keydown", e => { if (e.key === "Enter") { e.preventDefault(); const q = $query.val().trim(); if (q) fetchBooks(q); }});
 $(document).ready(() => fetchBooks());
