@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DG Library</title>
+  <link rel="stylesheet" href="./main.css" />
+</head>
+
+<body>
+  <header class="container">
+    <h1>Welcome to DG Library</h1>
+    <p class="subtitle"> You can get any book of your choosing from our digital library</p>
+
+    <div class="controls">
+      <button id="btnLoad" class="btn">Find me a book</button>
+
+      <div class="search">
+        <input id="searchInput" type="text" placeholder="Search books or authors " />
+        <button id="btnSearch" class="btn">Search</button>
+      </div>
+    </div>
+
+    <div id="status" class="status" aria-live="polite"></div>
+    <div id="error" class="error" role="alert"></div>
+  </header>
+
+  <main class="container">
+    <section id="grid" class="grid"></section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+        <p> Made with ❤️ from Muncie </p>
+    </div>
+  </footer>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="./script.js"></script>
+</body>
+</html>
